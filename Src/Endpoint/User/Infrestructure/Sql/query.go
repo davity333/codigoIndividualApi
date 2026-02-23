@@ -41,7 +41,7 @@ func (m *Mysql) GetUserByName(username string) ([]*entities.User, error) {
 }
 
 func (m *Mysql) GetAllUsers() ([]*entities.User, error) {
-	query := "SELECT id, username, email, firstname, lastname, role FROM users"
+	query := "SELECT id, username, email, firstname, lastname, rol FROM users"
 	rows, err := m.config.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (m *Mysql) GetAllUsers() ([]*entities.User, error) {
 }
 
 func (mysql *Mysql) LoginUser(email string, password string) (*entities.User, error) {
-    query := "SELECT id, username, email, password FROM users WHERE email = ?"
+    query := "SELECT id, username, email, password, firstname, lastname, rol FROM users WHERE email = ?"
     rows, err := mysql.config.FetchRows(query, email)
     if err != nil {
         return nil, err
@@ -70,7 +70,7 @@ func (mysql *Mysql) LoginUser(email string, password string) (*entities.User, er
 
     var user entities.User
     if rows.Next() {
-        err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+        err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.Role)
         if err != nil {
             return nil, err
         }
