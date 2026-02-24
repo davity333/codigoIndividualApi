@@ -1,11 +1,12 @@
 package application
 
 import (
-    auth "chat/Src/Auth"
+	auth "chat/Src/Auth"
 	entities "chat/Src/Endpoint/User/Domain/Entities"
 	repository "chat/Src/Endpoint/User/Domain/Repository"
-    "fmt"
-    "golang.org/x/crypto/bcrypt"
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginUserUseCase struct {
@@ -19,19 +20,19 @@ func NewLoginUserUseCase(usecase repository.IUser) *LoginUserUseCase {
 }
 
 func (c *LoginUserUseCase) ExecuteLogin(email string, password string) (*entities.User, string, error) {
-    user, err := c.usecase.LoginUser(email, password)
-    if err != nil || user == nil {
-        return nil, "", fmt.Errorf("usuario no encontrado")
-    }
+	user, err := c.usecase.LoginUser(email, password)
+	if err != nil || user == nil {
+		return nil, "", fmt.Errorf("usuario no encontrado")
+	}
 
-    if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-        return nil, "", fmt.Errorf("contraseña incorrecta tilin")
-    }
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, "", fmt.Errorf("contraseña incorrecta tilin")
+	}
 
-    token, err := auth.GenerateToken(email)
-    if err != nil {
-        return nil, "", err
-    }
+	token, err := auth.GenerateToken(email)
+	if err != nil {
+		return nil, "", err
+	}
 
-    return user, token, nil
+	return user, token, nil
 }
