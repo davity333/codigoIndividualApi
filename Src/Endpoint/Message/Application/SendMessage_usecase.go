@@ -16,11 +16,10 @@ type SendMessageUseCase struct {
 func NewSendMessageUseCase(repository repository.IMessage) *SendMessageUseCase {
 	return &SendMessageUseCase{
 		repository:  repository,
-		broadcaster: nil, // Will be set by DI
+		broadcaster: nil,
 	}
 }
 
-// SetBroadcaster sets the broadcaster for real-time notifications
 func (uc *SendMessageUseCase) SetBroadcaster(broadcaster *sse.Broadcaster) {
 	uc.broadcaster = broadcaster
 }
@@ -31,7 +30,6 @@ func (uc *SendMessageUseCase) Execute(message *entities.Message) error {
 		return err
 	}
 
-	// Broadcast message to receiver in real-time if broadcaster is set
 	if uc.broadcaster != nil {
 		sseEvent := sse.MessageEvent{
 			ID:         int64(message.ID),
@@ -40,7 +38,6 @@ func (uc *SendMessageUseCase) Execute(message *entities.Message) error {
 			Content:    message.Content,
 			CreatedAt:  time.Now().Format(time.RFC3339),
 		}
-		// Send to receiver for real-time notification
 		uc.broadcaster.Broadcast(message.ReceiveId, sseEvent)
 	}
 

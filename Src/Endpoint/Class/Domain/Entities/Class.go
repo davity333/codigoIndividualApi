@@ -11,5 +11,5 @@ type Class struct {
 	StartTime   string    `json:"startTime"`
 	EndTime     string    `json:"endTime"`
 	Capacity    int       `json:"capacity"`
-	Status      string    `json:"status"` // "Activa", "Cancelada", "Finalizada"
+	Status      string    `json:"status"`
 }
