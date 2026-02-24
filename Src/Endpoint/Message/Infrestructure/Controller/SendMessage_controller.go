@@ -8,16 +8,16 @@ import (
 )
 
 type SendMessageController struct {
-	usecase application.SendMessageUseCase
+	usecase *application.SendMessageUseCase
 }
 
-func NewSendMessageController(usecase application.SendMessageUseCase) *SendMessageController {
+func NewSendMessageController(usecase *application.SendMessageUseCase) *SendMessageController {
 	return &SendMessageController{
 		usecase: usecase,
 	}
 }
 
-func(c *SendMessageController) SendMessageController(context *gin.Context){
+func (c *SendMessageController) SendMessageController(context *gin.Context) {
 	var message *entities.Message
 
 	if err := context.ShouldBindJSON(&message); err != nil {
@@ -32,10 +32,10 @@ func(c *SendMessageController) SendMessageController(context *gin.Context){
 	}
 
 	var responseData = gin.H{
-		"idMessage": message.ID,
-		"senderId": message.SenderId,
-		"receiveId": message.ReceiveId,
-		"content": message.Content,
+		"idMessage":   message.ID,
+		"senderId":    message.SenderId,
+		"receiveId":   message.ReceiveId,
+		"content":     message.Content,
 		"timeMessage": message.TimeMessage,
 	}
 	context.JSON(200, gin.H{"data": responseData})

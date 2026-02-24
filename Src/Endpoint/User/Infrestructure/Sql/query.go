@@ -3,8 +3,8 @@ package sql
 import (
 	config "chat/Src/Core"
 	entities "chat/Src/Endpoint/User/Domain/Entities"
-	"log"
 	"fmt"
+	"log"
 )
 
 type Mysql struct {
@@ -81,14 +81,14 @@ func (mysql *Mysql) LoginUser(email string, password string) (*entities.User, er
     return &user, nil
 }
 
-func(mysql *Mysql) CreateUser(save *entities.User) (error){
+func (mysql *Mysql) CreateUser(save *entities.User) error {
 
-	query := "INSERT INTO users (username, email, password, firstname, lastname, rol) VALUES (?, ?, ?, ?, ?, ?)";
+	query := "INSERT INTO users (username, email, password, firstname, lastname, rol) VALUES (?, ?, ?, ?, ?, ?)"
 
 	result, err := mysql.config.ExecutePreparedQuery(query, save.Username, save.Email, save.Password, save.FirstName, save.LastName, save.Role)
 
 	if err != nil {
-		log.Println("Error al insertar el usuario:",save.Email, save.Username, save.Password ,err)
+		log.Println("Error al insertar el usuario:", save.Email, save.Username, save.Password, err)
 		return err
 	}
 	if result != nil {
@@ -96,10 +96,10 @@ func(mysql *Mysql) CreateUser(save *entities.User) (error){
 		if rowsAffected == 1 {
 			log.Printf("[MySQL] - Filas afectadas: %d", rowsAffected)
 
-            if err != nil {
-                fmt.Println(err)
-                return err
-            }
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
 
 		} else {
 			log.Printf("[MySQL] - Ninguna fila fue afectada.")

@@ -4,8 +4,9 @@ import (
 	application "chat/Src/Endpoint/User/Application"
 	entities "chat/Src/Endpoint/User/Domain/Entities"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type LoginUserUseCase struct {
@@ -24,7 +25,7 @@ func (c *LoginUserUseCase) LoginUser(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(400, gin.H{
-			"error": "Error 404 - Solicitud incorrecta, el cuerpo de la solicitud no es válido",
+			"error":  "Error 404 - Solicitud incorrecta, el cuerpo de la solicitud no es válido",
 			"Detail": err.Error()})
 		return
 	}
@@ -32,21 +33,21 @@ func (c *LoginUserUseCase) LoginUser(ctx *gin.Context) {
 	user, token, err := c.usecase.ExecuteLogin(user.Email, user.Password)
 	if err != nil {
 		ctx.JSON(500, gin.H{
-			"error": "Error 500 - Error interno del servidor, no se pudo iniciar sesión",
+			"error":  "Error 500 - Error interno del servidor, no se pudo iniciar sesión",
 			"Detail": err.Error()})
 		return
 	}
-	
+
 	response := gin.H{
 		"data": gin.H{
-			"type": "user",
+			"type":   "user",
 			"idUser": user.ID,
 			"attributes": gin.H{
-				"username": user.Username,
+				"username":  user.Username,
 				"email":     user.Email,
 				"firstName": user.FirstName,
-				"lastName": user.LastName,
-				"role": user.Role,
+				"lastName":  user.LastName,
+				"role":      user.Role,
 			},
 			"token": token,
 		}}
