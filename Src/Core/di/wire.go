@@ -26,8 +26,28 @@ import (
 	userController "chat/Src/Endpoint/User/Infrestructure/Controller"
 	userSql "chat/Src/Endpoint/User/Infrestructure/Sql"
 
+	contactApplication "chat/Src/Endpoint/Contacts/Application"
+	contactController "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
+	contactSql "chat/Src/Endpoint/Contacts/Infrestructure/Sql"
+
 	"github.com/google/wire"
 )
+
+func InitializeContactDependencies() (*ContactDependencies, error) {
+	wire.Build(
+		contactSql.NewMySQL,
+		wire.Bind(new(contactApplication.IContact), new(*contactSql.Mysql)),
+		contactApplication.NewGetAllContactsUseCase,
+		contactApplication.NewCreateContactUseCase,
+		contactApplication.NewDeleteContactUseCase,
+		contactController.NewGetAllContactsController,
+		contactController.NewCreateContactController,
+		contactController.NewDeleteContactController,
+		wire.Struct(new(ContactDependencies), "*"),
+	)
+
+	return nil, nil
+}
 
 func InitializeUserDependencies() (*UserDependencies, error) {
 	wire.Build(

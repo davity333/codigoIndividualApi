@@ -6,7 +6,14 @@ import (
 	messageController "chat/Src/Endpoint/Message/Infrestructure/Controller"
 	reservationController "chat/Src/Endpoint/Reservations/Infrestructure/Controller"
 	userController "chat/Src/Endpoint/User/Infrestructure/Controller"
+	contactController "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
 )
+
+type ContactDependencies struct {
+	GetAllContactsController    *contactController.GetAllContactsController
+	CreateContactController    *contactController.CreateContactController
+	DeleteContactController    *contactController.DeleteContactController
+}
 
 type UserDependencies struct {
 	GetAllUserController    *userController.GetAllUserController

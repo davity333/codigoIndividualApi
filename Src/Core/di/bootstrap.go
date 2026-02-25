@@ -6,6 +6,7 @@ import (
 	messageRouter "chat/Src/Endpoint/Message/Infrestructure/Router"
 	reservationRouter "chat/Src/Endpoint/Reservations/Infrestructure/Router"
 	userRouter "chat/Src/Endpoint/User/Infrestructure/Router"
+	contactRouter "chat/Src/Endpoint/Contacts/Infrestructure/Router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +36,18 @@ func InitRoutes(g *gin.Engine) error {
 	if err != nil {
 		return err
 	}
+
+	contactDeps, err := InitializeContactDependencies()
+	if err != nil {
+		return err
+	}
+
+	contactRouter.RouterContact(
+		g,
+		contactDeps.GetAllContactsController,
+		contactDeps.CreateContactController,
+		contactDeps.DeleteContactController,
+	)
 
 	userRouter.RouterUser(
 		g,

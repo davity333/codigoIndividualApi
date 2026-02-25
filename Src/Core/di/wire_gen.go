@@ -8,6 +8,9 @@ package di
 
 import (
 	"chat/Src/Core/sse"
+	application6 "chat/Src/Endpoint/Contacts/Application"
+	controller6 "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
+	sql6 "chat/Src/Endpoint/Contacts/Infrestructure/Sql"
 	application4 "chat/Src/Endpoint/Class/Application"
 	controller4 "chat/Src/Endpoint/Class/Infrestructure/Controller"
 	sql4 "chat/Src/Endpoint/Class/Infrestructure/Sql"
@@ -27,6 +30,31 @@ import (
 )
 
 // Injectors from wire.go:
+func InitializeContactDependencies() (*ContactDependencies, error) {
+    contactSQL, err := sql6.NewMySQL()
+    if err != nil {
+        return nil, err
+    }
+
+    // Use cases
+    getAllContactsUseCase := application6.NewGetAllContactsUseCase(contactSQL)
+    createContactUseCase := application6.NewCreateContactUseCase(contactSQL)
+    deleteContactUseCase := application6.NewDeleteContactUseCase(contactSQL)
+
+    // Controllers
+    getAllContactsController := controller6.NewGetAllContactsController(getAllContactsUseCase)
+    createContactController := controller6.NewCreateContactController(createContactUseCase)
+    deleteContactController := controller6.NewDeleteContactController(deleteContactUseCase)
+
+    contactDependencies := &ContactDependencies{
+        GetAllContactsController: getAllContactsController,
+        CreateContactController:  createContactController,
+        DeleteContactController:  deleteContactController,
+    }
+
+    return contactDependencies, nil
+}
+
 
 func InitializeUserDependencies() (*UserDependencies, error) {
 	mysql, err := sql.NewMySQL()
