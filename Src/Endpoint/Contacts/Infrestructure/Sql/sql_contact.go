@@ -3,6 +3,7 @@ package sql
 import (
     config "chat/Src/Core"
     entities "chat/Src/Endpoint/Contacts/Domain/Entities"
+    userEntities "chat/Src/Endpoint/User/Domain/Entities"
     "fmt"
     "strings"
 )
@@ -63,6 +64,30 @@ func (m *Mysql) CreateContact(contact entities.Contact) error {
 
     return nil
 }
+
+func (m *Mysql) GetContactByName(username string) (*userEntities.User, error) {
+    query := ` SELECT id, firstname, lastname, username FROM users WHERE username = ? LIMIT 1 `
+
+    var u userEntities.User
+
+    err := m.config.DB.QueryRow(query, username).Scan(
+        &u.ID,
+        &u.FirstName,
+        &u.LastName,
+        &u.Username,
+        &u.Role,
+    )
+
+    if err != nil {
+        if strings.Contains(err.Error(), "no rows") {
+            return nil, nil // no existe, el use case lo manejará
+        }
+        return nil, fmt.Errorf("error al obtener usuario por username: %v", err)
+    }
+
+    return &u, nil
+}
+
 
 
 func (m *Mysql) DeleteContact(userID int, contactID int) error {

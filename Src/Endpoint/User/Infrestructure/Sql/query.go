@@ -21,24 +21,44 @@ func NewMySQL() (*Mysql, error) {
 }
 
 func (m *Mysql) GetUserByName(username string) ([]*entities.User, error) {
-	query := "SELECT id, username, email, firstname, lastname, role FROM users WHERE username = ?"
-	rows, err := m.config.DB.Query(query, username)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+    query := `
+        SELECT id, username, email, password, firstname, lastname, rol
+        FROM users
+        WHERE username = ?
+    `
 
-	var users []*entities.User
-	for rows.Next() {
-		var user entities.User
-		err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Role)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, &user)
-	}
-	return users, nil
+    rows, err := m.config.DB.Query(query, username)
+    if err != nil {
+        return nil, fmt.Errorf("error al buscar usuario: %v", err)
+    }
+    defer rows.Close()
+
+    var users []*entities.User
+
+    for rows.Next() {
+        var u entities.User
+        if err := rows.Scan(
+            &u.ID,
+            &u.Username,
+            &u.Email,
+            &u.Password,
+            &u.FirstName,
+            &u.LastName,
+            &u.Role,
+        ); err != nil {
+            return nil, fmt.Errorf("error al escanear usuario: %v", err)
+        }
+
+        users = append(users, &u)
+    }
+
+    if len(users) == 0 {
+        return nil, fmt.Errorf("no existe el usuario")
+    }
+
+    return users, nil
 }
+
 
 func (m *Mysql) GetAllUsers() ([]*entities.User, error) {
 	query := "SELECT id, username, email, firstname, lastname, rol FROM users"

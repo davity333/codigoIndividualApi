@@ -3,7 +3,7 @@ package controller
 import (
 	application "chat/Src/Endpoint/User/Application"
 	"net/http"
-
+    "fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +32,7 @@ func (g *GetUserByNameController) GetByUsername(ctx *gin.Context) {
     if err != nil {
         ctx.JSON(http.StatusNotFound, gin.H{
             "error":  "Error 404 - Usuario no encontrado",
-            "detail": "El usuario no existe",
+            "detail": fmt.Sprintf("El usuario %s no existe", username),
         })
         return
     }
@@ -43,11 +43,11 @@ func (g *GetUserByNameController) GetByUsername(ctx *gin.Context) {
             "type": "users",
             "idUser": user.ID,
             "attributes": gin.H{
-                "username": user.Username,
-                "email":    user.Email,
+                "username":  user.Username,
+                "email":     user.Email,
                 "firstName": user.FirstName,
-                "lastName": user.LastName,
-                "role": user.Role,
+                "lastName":  user.LastName,
+                "role":      user.Role,
             },
         }
         responseData = append(responseData, userData)
