@@ -1,48 +1,48 @@
-# SSE Mensajería en Tiempo Real
+# WebSockets Mensajería en Tiempo Real
 
 ## Descripción
-Se implementó **Server-Sent Events (SSE)** para notificaciones de mensajes en tiempo real. Cuando un usuario envía un mensaje, el receptor recibe una notificación instantánea sin necesidad de hacer polling.
+Se implementó **WebSockets** para notificaciones de mensajes en tiempo real. Cuando un usuario envía un mensaje, el receptor recibe una notificación instantánea a través de una conexión bidireccional continua de baja latencia.
 
 ## Componentes Implementados
 
 ### 1. **Broadcaster** (`Src/Core/sse/broadcaster.go`)
-Servicio central que gestiona las conexiones SSE
-- `Subscribe(userID int)` - Usuario se conecta al stream
-- `Unsubscribe(userID int, ch)` - Usuario se desconecta
-- `Broadcast(userID, message)` - Envía evento a un usuario
-- `BroadcastToMultiple(userIDs[], message)` - Envía a múltiples usuarios
+Servicio central que gestiona las conexiones WebSocket. (Mantuvo el nombre de paquete `sse` temporalmente por compatibilidad estructural, pero usa WebSockets por debajo).
+- `Subscribe(userID int, conn *websocket.Conn)` - Registra una nueva conexión WebSocket para un usuario.
+- `Unsubscribe(userID int, conn *websocket.Conn)` - Elimina una conexión WebSocket cuando el usuario se desconecta.
+- `Broadcast(userID, message)` - Escribe un evento JSON directamente en el socket del usuario.
+- `BroadcastToMultiple(userIDs[], message)` - Envía a múltiples usuarios.
 
-### 2. **Controlador SSE** (`Src/Endpoint/Message/Infrestructure/Controller/SubscribeMessage_controller.go`)
+### 2. **Controlador WebSocket** (`Src/Endpoint/Message/Infrestructure/Controller/SubscribeMessage_controller.go`)
 Endpoint `GET /api/v1/message/subscribe`
-- Espera header `X-User-ID` con el ID del usuario
-- Mantiene conexión abierta para recibir eventos
-- Cierra cuando cliente desconecta o timeout
+- Espera header HTTP `X-User-ID` o parámetro de query `?userId=X` con el ID del usuario.
+- Promueve (Upgrade) la conexión HTTP tradicional a una conexión WebSocket completa usando `gorilla/websocket`.
+- Mantiene la conexión abierta en un loop de lectura infinito escuchando eventos de desconexión del cliente.
 
 ### 3. **SendMessage UseCase Actualizado**
-Ahora emite eventos SSE cuando se envía un mensaje
+Emite eventos JSON al WebSocket cuando se envía un mensaje.
 - Llamadas a `broadcaster.Broadcast(receiverID, event)`
 
 ### 4. **Wire DI**
-- `InitializeBroadcaster()` - Singleton global
-- `ProvideSendMessageUseCase()` - Inyecta broadcaster en UseCase
+- `InitializeBroadcaster()` - Singleton global.
+- `ProvideSendMessageUseCase()` - Inyecta broadcaster en UseCase.
 
 ---
 
 ## Uso de la API
 
-### Cliente 1: Se conecta a SSE (para recibir mensajes)
+### Cliente 1: Se conecta al WebSocket (para recibir mensajes)
 
-```bash
-curl -N -H "X-User-ID: 2" "http://localhost:8080/api/v1/message/subscribe"
+Dependiendo de tu cliente (App Móvil o Web), la conexión se hace mediante el protocolo `ws://`.
+
+Ejemplo de conexión de red cruda (o utilizando un cliente WS como Postman):
+```
+ws://localhost:8080/api/v1/message/subscribe?userId=2
 ```
 
-**Respuesta en streaming:**
-```
-event: message
-data: {"id":5,"sender_id":1,"receiver_id":2,"content":"Hola!","created_at":"2025-02-22T10:30:45Z"}
-
-event: message
-data: {"id":6,"sender_id":1,"receiver_id":2,"content":"¿Cómo estás?","created_at":"2025-02-22T10:31:00Z"}
+**Respuesta recibida en el socket (formato JSON crudo):**
+```json
+{"id":5,"sender_id":1,"receiver_id":2,"content":"Hola!","created_at":"2025-02-22T10:30:45Z"}
+{"id":6,"sender_id":1,"receiver_id":2,"content":"¿Cómo estás?","created_at":"2025-02-22T10:31:00Z"}
 ```
 
 ### Cliente 2: Envía un mensaje
@@ -57,7 +57,7 @@ curl -X POST http://localhost:8080/api/v1/message/send \
   }'
 ```
 
-**Respuesta:**
+**Respuesta HTTP Clásica:**
 ```json
 {
   "data": {
@@ -70,52 +70,56 @@ curl -X POST http://localhost:8080/api/v1/message/send \
 }
 ```
 
-► **Cliente 1 recibe la notificación automáticamente en el stream SSE**
+► **Cliente 1 recibe la notificación automáticamente empujada a su WebSocket abierto de manera instantánea**
 
 ---
 
-## Ejemplo JavaScript (Frontend)
+## Ejemplo JavaScript / Frontend (WebSockets)
 
 ```javascript
-// Usuario se conecta al stream de mensajes
-const eventSource = new EventSource(
-  '/api/v1/message/subscribe',
-  { headers: { 'X-User-ID': '2' } }
-);
+const userId = 2; // ID del usuario actual
 
-// Escucha mensajes entrantes
-eventSource.addEventListener('message', (event) => {
-  const msg = JSON.parse(event.data);
-  console.log(`Nuevo mensaje de ${msg.sender_id}: ${msg.content}`);
-  
-  // Mostrar en UI
-  addMessageToChat(msg);
-});
+// 1. Conectar al WebSocket (nota el protocolo ws:// en lugar de http://)
+const socket = new WebSocket(`ws://localhost:8080/api/v1/message/subscribe?userId=${userId}`);
 
-// Manejar errores de conexión
-eventSource.onerror = () => {
-  console.log('Desconectado. Reconectando...');
-  eventSource.close();
+// 2. Escuchar conexión exitosa
+socket.onopen = function(e) {
+  console.log("[open] Conexión establecida con el servidor WebSocket");
 };
 
-// Enviar mensaje
-async function sendMessage(content, receiverId) {
-  const response = await fetch('/api/v1/message/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      senderId: userId,
-      receiverId: receiverId,
-      content: content
-    })
-  });
-  return response.json();
-}
+// 3. Escuchar mensajes entrantes
+socket.onmessage = function(event) {
+  // Los datos llegan como un string JSON
+  const msg = JSON.parse(event.data);
+  console.log(`[message] Nuevo mensaje de ${msg.sender_id}: ${msg.content}`);
+  
+  // Mostrar en la UI
+  addMessageToChat(msg);
+};
+
+// 4. Manejar desconexiones o cierres
+socket.onclose = function(event) {
+  if (event.wasClean) {
+    console.log(`[close] Conexión cerrada limpiamente, código=${event.code} motivo=${event.reason}`);
+  } else {
+    // ej. el servidor se cayó o la red se perdió
+    console.log('[close] Conexión interrumpida. Sugerencia: Programar reconexión automática.');
+  }
+};
+
+// 5. Manejar errores
+socket.onerror = function(error) {
+  console.error(`[error]`, error);
+};
+
+// Para ENVIAR mensajes, actualmente sigues usando tu API REST POST normal, 
+// pero en un futuro podrías enviar mensajes escribiendo al socket mediante:
+// socket.send(JSON.stringify({ content: "Hola", receiverId: 1 }));
 ```
 
 ---
 
-## Flujo en Tiempo Real
+## Flujo Dúplex en Tiempo Real (Actual)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -126,7 +130,7 @@ async function sendMessage(content, receiverId) {
 │                          ▼                                    │
 │                    SendMessageUseCase                        │
 │                          │                                    │
-│                          ├─► Guardarin BD                    │
+│                          ├─► Guardar en BD                   │
 │                          │                                    │
 │                          └─► broadcaster.Broadcast(ID: 2)    │
 │                                       │                       │
@@ -134,14 +138,13 @@ async function sendMessage(content, receiverId) {
                                │        │
                                │        ▼
 ┌──────────────────────────────┤  ┌─────────────────────────┐
-│   CLIENTE B (ID: 2)          │  │    SSE BROADCASTER      │
+│   CLIENTE B (ID: 2)          │  │     WEBSOCKET HUB       │
 │                              │  │  (mantiene conexiones)  │
-│ GET /subscribe ───►[ABIERTO] │  └─────────────────────────┘
+│ WS UPGRADE ────────►[ABIERTO]│  └─────────────────────────┘
 │       │                      │         │
 │       │                      └────────►│
 │       │                                │
-│   event: message◄───────────────[EVENTO EMITIDO]
-│   data: {...}                         │
+│ {"content": "Hola!"}◄───────────[JSON EMITIDO]
 │       │                               │
 │  [NOTIFICACIÓN MOSTRADA EN UI]        │
 │                                       │
@@ -150,42 +153,16 @@ async function sendMessage(content, receiverId) {
 
 ---
 
-## Características
+## Características de WebSockets respecto a SSE
 
-✅ **Real-time** - Notificaciones instantáneas sin polling
-✅ **Eficiente** - Usa HTTP/1.1 Keep-Alive
-✅ **Escalable** - Broadcaster gestiona múltiples conexiones
-✅ **Integrado** - Se aplica automáticamente con Wire DI
-✅ **Fallback** - Compatible con navegadores antiguos (con polyfill)
-✅ **Seguro** - Requiere header X-User-ID (puede integrar JWT)
-
----
+✅ **Full-Duplex** - Bidireccional. Actualmente solo el servidor habla, pero con WS tienes la infraestructura lista para que los clientes envíen mensajes directamente por el socket sin hacer peticiones HTTP POST (latencia mínima absoluta).
+✅ **Estándar de Chat** - Usado por WhatsApp, Discord, Slack.
+✅ **Manejo de estados nativo** - Facilita rastrear si un usuario está "escribiendo..." sin sobrecargar la red.
+✅ **Baja Latencia** - No hay sobrecarga de headers de HTTP cada vez que se quiere emitir un mensaje.
 
 ## Seguridad (Opcional)
 
-Aplicar JWT Middleware al endpoint SSE:
+Puedes proteger la inicialización del WebSocket comprobando tokens de acceso justo en el momento donde se evalúa el header (antes de llamar a la función de upgrade `upgrader.Upgrade()`).
 
-```go
-messageGroup.GET("/subscribe", 
-  middleware.JWTMiddleware(),  // ◄── Agregar esta línea
-  SubscribeMessage.Subscribe)
-```
-
----
-
-## Monitoreo
-
-Ver usuarios conectados:
-```go
-connectedUsers := broadcaster.GetConnectedUsers()
-```
-
----
-
-## Próximos Pasos (Opcional)
-
-1. **Agregar autenticación JWT** al endpoint `/subscribe`
-2. **Persistir estado** - Guardar mensajes no entregados
-3. **Historial de chats** - GET `/api/v1/message/getAll`
-4. **Typing indicadores** - Evento diferente: `event: typing`
-5. **Read receipts** - Confirmar cuando mensaje fue leído
+## Futuras mejoras
+*   **Aceptar lectura del socket**: Puedes crear un caso de uso donde si el servidor lee del socket `msg := ws.ReadMessage()`, invoque al `SendMessageUseCase` automáticamente, y así eliminas por completo la necesidad del endpoint REST POST `/send`.

@@ -22,13 +22,11 @@ func GetDBPool() *ConnMySQL {
         log.Fatalf("Error al cargar el archivo .env: %v", err)
     }
 
-    // Obtener las variables
     dbHost := os.Getenv("DB_HOST")
     dbUser := os.Getenv("DB_USER")
     dbPass := os.Getenv("DB_PASSWORD")
     dbSchema := os.Getenv("DB_DATABASE")
-    log.Printf("DB_HOST: %s, DB_USER: %s, DB_PASS: %s, DB_SCHEMA: %s", dbHost, dbUser, dbPass, dbSchema)
-	if dbHost == "" || dbUser == "" || dbPass == "" || dbSchema == "" {
+    if dbHost == "" || dbUser == "" || dbPass == "" || dbSchema == "" {
         log.Fatalf("Una o más variables de entorno están vacías.")
     }
 
@@ -41,10 +39,8 @@ func GetDBPool() *ConnMySQL {
         return &ConnMySQL{Err: errorMsg}
     }
 
-    // Configuración del pool de conexiones
     db.SetMaxOpenConns(10)
 
-    // Probar la conexión
     if err := db.Ping(); err != nil {
         db.Close()
         errorMsg = fmt.Sprintf("error al verificar la conexión a la base de datos: %v", err)
