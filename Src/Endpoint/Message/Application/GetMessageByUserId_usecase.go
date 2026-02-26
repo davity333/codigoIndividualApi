@@ -15,8 +15,8 @@ func NewGetMessageByUserIdUseCase(repository repository.IMessage) *GetMessageByU
 	}
 }
 
-func (uc *GetMessageByUserIdUseCase) Execute(userId int) ([]*entities.Message, error) {
-	messages, err := uc.repository.GetMessagesByUserId(userId)
+func (uc *GetMessageByUserIdUseCase) Execute(senderId int, receiveId int) ([]*entities.Message, error) {
+	messages, err := uc.repository.GetMessagesByUserId(senderId, receiveId)
 	if err != nil {
 		return nil, err
 	}

@@ -61,8 +61,6 @@ func (b *Broadcaster) Broadcast(userID int, message MessageEvent) {
 		for conn := range connections {
 			err := conn.WriteJSON(message)
 			if err != nil {
-				// We can't safely remove from map while iterating in Go without care,
-				// but usually the read loop on the other side handles exact closure.
 				conn.Close()
 			}
 		}
