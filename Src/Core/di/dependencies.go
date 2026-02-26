@@ -20,6 +20,7 @@ type UserDependencies struct {
 	GetUserByNameController *userController.GetUserByNameController
 	CreateUserController    *userController.CreateUserController
 	LoginUserController     *userController.LoginUserUseCase
+	GetTeacherByIDController *userController.GetTeacherByIDController
 }
 
 type MessageDependencies struct {

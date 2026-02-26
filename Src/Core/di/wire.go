@@ -61,6 +61,8 @@ func InitializeUserDependencies() (*UserDependencies, error) {
 		userController.NewGetUserByNameController,
 		userController.NewCreateUserController,
 		userController.NewLoginUserUseCase,
+		userApplication.NewGetTeacherByIDUseCase,
+		userController.NewGetTeacherByIDController,
 		wire.Struct(new(UserDependencies), "*"),
 	)
 

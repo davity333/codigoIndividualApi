@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	config "chat/Src/Core"
 	entities "chat/Src/Endpoint/User/Domain/Entities"
 	"fmt"
@@ -129,4 +130,35 @@ func (mysql *Mysql) CreateUser(save *entities.User) error {
 		log.Printf("[MySQL] - Resultado de la consulta es nil.")
 	}
 	return nil
+}
+
+func (r *Mysql) GetTeacherByID(userID string) (*entities.User, error) {
+    query := `
+        SELECT id, firstName, lastName, username, email, rol
+        FROM users
+        WHERE id = ?
+        AND rol = 'Docente'
+        LIMIT 1;
+    `
+
+    row := r.config.DB.QueryRow(query, userID)
+
+    var user entities.User
+    err := row.Scan(
+        &user.ID,
+        &user.FirstName,
+        &user.LastName,
+        &user.Username,
+        &user.Email,
+        &user.Role,
+    )
+
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return nil, fmt.Errorf("no se encontró el docente con ID %s", userID)
+        }
+        return nil, err
+    }
+
+    return &user, nil
 }

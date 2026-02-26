@@ -69,11 +69,14 @@ func InitializeUserDependencies() (*UserDependencies, error) {
 	createUserController := controller.NewCreateUserController(createUserUseCase)
 	loginUserUseCase := application.NewLoginUserUseCase(mysql)
 	controllerLoginUserUseCase := controller.NewLoginUserUseCase(loginUserUseCase)
+	getTeacherByIDUseCase := application.NewGetTeacherByIDUseCase(mysql)
+	getTeacherByIDController := controller.NewGetTeacherByIDController(getTeacherByIDUseCase)
 	userDependencies := &UserDependencies{
 		GetAllUserController:    getAllUserController,
 		GetUserByNameController: getUserByNameController,
 		CreateUserController:    createUserController,
 		LoginUserController:     controllerLoginUserUseCase,
+		GetTeacherByIDController: getTeacherByIDController,
 	}
 	return userDependencies, nil
 }

@@ -55,6 +55,7 @@ func InitRoutes(g *gin.Engine) error {
 		userDeps.GetUserByNameController,
 		userDeps.CreateUserController,
 		userDeps.LoginUserController,
+		userDeps.GetTeacherByIDController,
 	)
 
 	messageRouter.MessageRouter(

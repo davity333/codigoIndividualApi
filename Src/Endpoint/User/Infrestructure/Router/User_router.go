@@ -11,6 +11,7 @@ func RouterUser(g *gin.Engine,
 	getUserByNameController *controller.GetUserByNameController,
 	createUserController *controller.CreateUserController,
 	loginUserController *controller.LoginUserUseCase,
+	GetTeacherByIDController *controller.GetTeacherByIDController,
 ) {
 	userGroup := g.Group("/api/v1/users")
 	{
@@ -18,5 +19,6 @@ func RouterUser(g *gin.Engine,
 		userGroup.GET("/:username", getUserByNameController.GetByUsername)
 		userGroup.POST("/create", createUserController.CreateUser)
 		userGroup.POST("/login", loginUserController.LoginUser)
+		userGroup.GET("/teacher/:id", GetTeacherByIDController.Handle)
 	}
 }

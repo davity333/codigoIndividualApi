@@ -4,7 +4,6 @@ import (
 	config "chat/Src/Core"
 	entities "chat/Src/Endpoint/Class/Domain/Entities"
 	"database/sql"
-	"time"
 )
 
 type ClassSQL struct {
@@ -94,25 +93,72 @@ func (c *ClassSQL) DeleteClass(classID int64) error {
 }
 
 func scanClass(rows *sql.Rows) (entities.Class, error) {
-	var class entities.Class
-	var classDate string
-	err := rows.Scan(&class.ID, &class.TeacherID, &class.Title, &class.Description, &classDate, &class.StartTime, &class.EndTime, &class.Capacity, &class.Status)
-	if err != nil {
-		return class, err
-	}
-	classDateTime, _ := time.Parse("2006-01-02", classDate)
-	class.ClassDate = classDateTime
-	return class, nil
+    var class entities.Class
+    var classDate string
+
+    err := rows.Scan(
+        &class.ID,
+        &class.TeacherID,
+        &class.Title,
+        &class.Description,
+        &classDate,
+        &class.StartTime,
+        &class.EndTime,
+        &class.Capacity,
+        &class.Status,
+    )
+    if err != nil {
+        return class, err
+    }
+
+    class.ClassDate = classDate
+    return class, nil
 }
 
+
 func scanClassRow(row *sql.Row) (entities.Class, error) {
-	var class entities.Class
-	var classDate string
-	err := row.Scan(&class.ID, &class.TeacherID, &class.Title, &class.Description, &classDate, &class.StartTime, &class.EndTime, &class.Capacity, &class.Status)
-	if err != nil {
-		return class, err
-	}
-	classDateTime, _ := time.Parse("2006-01-02", classDate)
-	class.ClassDate = classDateTime
-	return class, nil
+    var class entities.Class
+    var classDate string
+
+    err := row.Scan(
+        &class.ID,
+        &class.TeacherID,
+        &class.Title,
+        &class.Description,
+        &classDate,
+        &class.StartTime,
+        &class.EndTime,
+        &class.Capacity,
+        &class.Status,
+    )
+    if err != nil {
+        return class, err
+    }
+
+    class.ClassDate = classDate
+    return class, nil
 }
+
+
+func (c *ClassSQL) HasScheduleConflict(teacherID int, startTime, endTime string, classDate string) (bool, error) {
+    query := `
+        SELECT COUNT(*)
+        FROM classes
+        WHERE teacherId = ?
+          AND classDate = ?
+          AND status = 'Activa'
+          AND (
+                startTime < ?
+            AND endTime   > ?
+          )
+    `
+
+    var count int
+    err := c.config.DB.QueryRow(query, teacherID, classDate, endTime, startTime).Scan(&count)
+    if err != nil {
+        return false, err
+    }
+
+    return count > 0, nil
+}
+
