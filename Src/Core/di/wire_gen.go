@@ -44,7 +44,7 @@ func InitializeContactDependencies() (*ContactDependencies, error) {
 
 	// Controllers
 	getAllContactsController := controller6.NewGetAllContactsController(getAllContactsUseCase)
-	createContactController := controller6.NewCreateContactController(createContactUseCase)
+	createContactController := controller6.NewCreateContactController(createContactUseCase, getAllContactsUseCase)
 	deleteContactController := controller6.NewDeleteContactController(deleteContactUseCase)
 	getContactByNameController := controller6.NewGetContactByNameController(getContactByNameUseCase)
 
