@@ -2,6 +2,8 @@ package sse
 
 import (
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 type MessageEvent struct {
@@ -12,48 +14,39 @@ type MessageEvent struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-type ClientConn struct {
-	UserID   int
-	Messages chan MessageEvent
-}
-
 type Broadcaster struct {
-	clients map[int]map[chan MessageEvent]bool
+	clients map[int]map[*websocket.Conn]bool
 	mu      sync.RWMutex
 }
 
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{
-		clients: make(map[int]map[chan MessageEvent]bool),
+		clients: make(map[int]map[*websocket.Conn]bool),
 	}
 }
 
 // Subscribe adds a client to receive messages
-func (b *Broadcaster) Subscribe(userID int) chan MessageEvent {
+func (b *Broadcaster) Subscribe(userID int, conn *websocket.Conn) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	messages := make(chan MessageEvent, 10)
-
 	if b.clients[userID] == nil {
-		b.clients[userID] = make(map[chan MessageEvent]bool)
+		b.clients[userID] = make(map[*websocket.Conn]bool)
 	}
-	b.clients[userID][messages] = true
-
-	return messages
+	b.clients[userID][conn] = true
 }
 
 // Unsubscribe removes a client from receiving messages
-func (b *Broadcaster) Unsubscribe(userID int, ch chan MessageEvent) {
+func (b *Broadcaster) Unsubscribe(userID int, conn *websocket.Conn) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if channels, ok := b.clients[userID]; ok {
-		if _, exists := channels[ch]; exists {
-			delete(channels, ch)
-			close(ch)
+	if connections, ok := b.clients[userID]; ok {
+		if _, exists := connections[conn]; exists {
+			delete(connections, conn)
+			conn.Close()
 		}
-		if len(channels) == 0 {
+		if len(connections) == 0 {
 			delete(b.clients, userID)
 		}
 	}
@@ -64,18 +57,19 @@ func (b *Broadcaster) Broadcast(userID int, message MessageEvent) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	if channels, ok := b.clients[userID]; ok {
-		for ch := range channels {
-			select {
-			case ch <- message:
-			default:
-				// Channel full, skip to avoid blocking
+	if connections, ok := b.clients[userID]; ok {
+		for conn := range connections {
+			err := conn.WriteJSON(message)
+			if err != nil {
+				// We can't safely remove from map while iterating in Go without care,
+				// but usually the read loop on the other side handles exact closure.
+				conn.Close()
 			}
 		}
 	}
 }
 
-// BroadcastToMultiple sends message to multiple users (e.g., conversation participants)
+// BroadcastToMultiple sends message to multiple users
 func (b *Broadcaster) BroadcastToMultiple(userIDs []int, message MessageEvent) {
 	for _, userID := range userIDs {
 		b.Broadcast(userID, message)

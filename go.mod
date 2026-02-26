@@ -9,6 +9,8 @@ require (
 
 require github.com/google/wire v0.6.0
 
+require github.com/gorilla/websocket v1.5.3
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/sonic v1.14.0 // indirect
