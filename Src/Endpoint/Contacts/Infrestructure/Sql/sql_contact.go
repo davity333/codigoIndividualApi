@@ -32,7 +32,7 @@ func (m *Mysql) GetAll(userID int) ([]entities.ContactResponse, error) {
             u.lastname,
             u.username,
             u.email,
-            u.role
+            u.rol
         FROM user_contacts c
         JOIN users u ON c.contactId = u.id
         WHERE c.userId = ?
