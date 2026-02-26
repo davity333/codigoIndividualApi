@@ -29,23 +29,22 @@ func (c *GetAllContactsController) Handle(ctx *gin.Context) {
     }
 
     contacts, err := c.usecase.Execute(userID)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+if err != nil {
+    ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    return
+}
 
-    // Si no hay contactos
-    if len(contacts) == 0 {
-        ctx.JSON(http.StatusOK, gin.H{
-            "message":  "No tienes ningún contacto agregado",
-            "contacts": []entities.Contact{},
-        })
-        return
-    }
-
-    // Si sí hay contactos
+if len(contacts) == 0 {
     ctx.JSON(http.StatusOK, gin.H{
-        "message":  "Contactos obtenidos correctamente",
-        "contacts": contacts,
+        "message":  "No tienes ningún contacto agregado",
+        "contacts": []entities.ContactResponse{},
     })
+    return
+}
+
+ctx.JSON(http.StatusOK, gin.H{
+    "message":  "Contactos obtenidos correctamente",
+    "contacts": contacts,
+})
+
 }

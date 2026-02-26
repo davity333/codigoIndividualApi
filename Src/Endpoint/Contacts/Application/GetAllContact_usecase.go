@@ -16,7 +16,7 @@ func NewGetAllContactsUseCase(repository repository.IContacts) *GetAllContactsUs
     }
 }
 
-func (uc *GetAllContactsUseCase) Execute(userID int) ([]entities.Contact, error) {
+func (uc *GetAllContactsUseCase) Execute(userID int) ([]entities.ContactResponse, error) {
     if userID <= 0 {
         return nil, errors.New("userID inválido")
     }

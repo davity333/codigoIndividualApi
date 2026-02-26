@@ -20,7 +20,7 @@ func NewMySQL() (*Mysql, error) {
 }
 
 func (m *Mysql) GetAllReservations() ([]*entities.Reservation, error) {
-	query := `SELECT idReservation, studentId, teacherId, reservationDate, reservationTime, attendance, topic
+	query := `SELECT idReservation, studentId, classId, reservationDate,attendance
 				FROM reservations
 				ORDER BY idReservation DESC`
 
@@ -43,7 +43,7 @@ func (m *Mysql) GetAllReservations() ([]*entities.Reservation, error) {
 }
 
 func (m *Mysql) GetReservationByID(id int) (*entities.Reservation, error) {
-	query := `SELECT idReservation, studentId, teacherId, reservationDate, reservationTime, attendance, topic
+	query := `SELECT idReservation, studentId, classId, reservationDate, attendance
 				FROM reservations
 				WHERE idReservation = ?`
 
@@ -65,16 +65,14 @@ func (m *Mysql) GetReservationByID(id int) (*entities.Reservation, error) {
 }
 
 func (m *Mysql) CreateReservation(reservation *entities.Reservation) error {
-	query := `INSERT INTO reservations (studentId, teacherId, reservationDate, reservationTime, attendance, topic)
-				VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO reservations (studentId, classId, reservationDate, attendance)
+				VALUES (?, ?, ?, ?)`
 
 	result, err := m.config.DB.Exec(query,
 		reservation.StudentID,
-		reservation.TeacherID,
+		reservation.ClassID,
 		reservation.ReservationDate,
-		reservation.ReservationTime,
 		reservation.Attendance,
-		reservation.Topic,
 	)
 	if err != nil {
 		return err
@@ -90,16 +88,14 @@ func (m *Mysql) CreateReservation(reservation *entities.Reservation) error {
 
 func (m *Mysql) UpdateReservation(id int, reservation *entities.Reservation) error {
 	query := `UPDATE reservations
-				SET studentId = ?, teacherId = ?, reservationDate = ?, reservationTime = ?, attendance = ?, topic = ?
+				SET studentId = ?, classId = ?, reservationDate = ?, attendance = ?
 				WHERE idReservation = ?`
 
 	result, err := m.config.DB.Exec(query,
 		reservation.StudentID,
-		reservation.TeacherID,
+		reservation.ClassID,
 		reservation.ReservationDate,
-		reservation.ReservationTime,
 		reservation.Attendance,
-		reservation.Topic,
 		id,
 	)
 	if err != nil {
@@ -139,11 +135,9 @@ func scanReservation(scanner interface {
 	err := scanner.Scan(
 		&reservation.ID,
 		&reservation.StudentID,
-		&reservation.TeacherID,
+		&reservation.ClassID,
 		&reservation.ReservationDate,
-		&reservation.ReservationTime,
 		&attendance,
-		&reservation.Topic,
 	)
 	if err != nil {
 		return nil, err

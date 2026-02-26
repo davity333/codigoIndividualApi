@@ -10,10 +10,8 @@ func formatReservation(reservation *entities.Reservation) gin.H {
 	return gin.H{
 		"idReservation":   reservation.ID,
 		"studentId":       reservation.StudentID,
-		"teacherId":       reservation.TeacherID,
+		"classId":         reservation.ClassID,
 		"reservationDate": reservation.ReservationDate.Format("2006-01-02"),
-		"reservationTime": reservation.ReservationTime,
 		"attendance":      reservation.Attendance,
-		"topic":           reservation.Topic,
 	}
 }

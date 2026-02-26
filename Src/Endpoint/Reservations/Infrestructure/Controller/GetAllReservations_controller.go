@@ -17,16 +17,31 @@ func NewGetAllReservationsController(usecase *application.GetAllReservationsUseC
 }
 
 func (c *GetAllReservationsController) GetAllReservations(ctx *gin.Context) {
-	reservations, err := c.usecase.Execute()
-	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Error 500 - Error interno del servidor", "Detail": err.Error()})
-		return
-	}
+    reservations, err := c.usecase.Execute()
+    if err != nil {
+        ctx.JSON(500, gin.H{
+            "error":  "Error 500 - Error interno del servidor",
+            "detail": err.Error(),
+        })
+        return
+    }
 
-	responseData := make([]gin.H, 0, len(reservations))
-	for _, reservation := range reservations {
-		responseData = append(responseData, formatReservation(reservation))
-	}
+    // Si no hay reservaciones
+    if len(reservations) == 0 {
+        ctx.JSON(200, gin.H{
+            "message": "No hay ninguna reservación",
+            "reservations": []gin.H{},
+        })
+        return
+    }
 
-	ctx.JSON(200, gin.H{"reservations": responseData})
+    // Si sí hay reservaciones
+    responseData := make([]gin.H, 0, len(reservations))
+    for _, reservation := range reservations {
+        responseData = append(responseData, formatReservation(reservation))
+    }
+
+    ctx.JSON(200, gin.H{
+        "reservations": responseData,
+    })
 }

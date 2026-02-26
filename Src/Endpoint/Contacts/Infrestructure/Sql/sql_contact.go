@@ -21,11 +21,20 @@ func NewMySQL() (*Mysql, error) {
     return &Mysql{config: conn}, nil
 }
 
-func (m *Mysql) GetAll(userID int) ([]entities.Contact, error) {
+func (m *Mysql) GetAll(userID int) ([]entities.ContactResponse, error) {
     query := `
-        SELECT id, userId, contactId, createdAt
-        FROM user_contacts
-        WHERE userId = ?
+        SELECT 
+            c.id,
+            c.userId,
+            c.contactId,
+            c.createdAt,
+            u.firstname,
+            u.lastname,
+            u.username,
+            u.email
+        FROM user_contacts c
+        JOIN users u ON c.contactId = u.id
+        WHERE c.userId = ?
     `
 
     rows, err := m.config.DB.Query(query, userID)
@@ -34,11 +43,20 @@ func (m *Mysql) GetAll(userID int) ([]entities.Contact, error) {
     }
     defer rows.Close()
 
-    var contacts []entities.Contact
+    var contacts []entities.ContactResponse
 
     for rows.Next() {
-        var c entities.Contact
-        if err := rows.Scan(&c.ID, &c.UserID, &c.ContactID, &c.CreatedAt); err != nil {
+        var c entities.ContactResponse
+        if err := rows.Scan(
+            &c.ID,
+            &c.UserID,
+            &c.ContactID,
+            &c.CreatedAt,
+            &c.FirstName,
+            &c.LastName,
+            &c.Username,
+            &c.Email,
+        ); err != nil {
             return nil, fmt.Errorf("error al escanear contacto: %v", err)
         }
         contacts = append(contacts, c)
@@ -46,6 +64,7 @@ func (m *Mysql) GetAll(userID int) ([]entities.Contact, error) {
 
     return contacts, nil
 }
+
 
 func (m *Mysql) CreateContact(contact entities.Contact) error {
     query := `
