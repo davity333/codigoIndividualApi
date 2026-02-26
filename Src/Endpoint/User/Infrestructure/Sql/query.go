@@ -24,7 +24,7 @@ func (m *Mysql) GetUserByName(username string) ([]*entities.User, error) {
     query := `
         SELECT id, username, email, password, firstname, lastname, rol
         FROM users
-        WHERE username = ?
+        WHERE username LIKE CONCAT('%', ?, '%')
     `
 
     rows, err := m.config.DB.Query(query, username)
@@ -58,6 +58,7 @@ func (m *Mysql) GetUserByName(username string) ([]*entities.User, error) {
 
     return users, nil
 }
+
 
 
 func (m *Mysql) GetAllUsers() ([]*entities.User, error) {
