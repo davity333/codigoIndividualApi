@@ -2,24 +2,25 @@ package di
 
 import (
 	classController "chat/Src/Endpoint/Class/Infrestructure/Controller"
+	contactController "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
 	enrollmentController "chat/Src/Endpoint/Enrollment/Infrestructure/Controller"
 	messageController "chat/Src/Endpoint/Message/Infrestructure/Controller"
 	reservationController "chat/Src/Endpoint/Reservations/Infrestructure/Controller"
 	userController "chat/Src/Endpoint/User/Infrestructure/Controller"
-	contactController "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
 )
 
 type ContactDependencies struct {
-	GetAllContactsController    *contactController.GetAllContactsController
+	GetAllContactsController   *contactController.GetAllContactsController
 	CreateContactController    *contactController.CreateContactController
 	DeleteContactController    *contactController.DeleteContactController
+	GetContactByNameController *contactController.GetContactByNameController
 }
 
 type UserDependencies struct {
-	GetAllUserController    *userController.GetAllUserController
-	GetUserByNameController *userController.GetUserByNameController
-	CreateUserController    *userController.CreateUserController
-	LoginUserController     *userController.LoginUserUseCase
+	GetAllUserController     *userController.GetAllUserController
+	GetUserByNameController  *userController.GetUserByNameController
+	CreateUserController     *userController.CreateUserController
+	LoginUserController      *userController.LoginUserUseCase
 	GetTeacherByIDController *userController.GetTeacherByIDController
 }
 

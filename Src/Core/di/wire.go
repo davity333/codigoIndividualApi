@@ -40,9 +40,11 @@ func InitializeContactDependencies() (*ContactDependencies, error) {
 		contactApplication.NewGetAllContactsUseCase,
 		contactApplication.NewCreateContactUseCase,
 		contactApplication.NewDeleteContactUseCase,
+		contactApplication.NewGetContactByNameUseCase,
 		contactController.NewGetAllContactsController,
 		contactController.NewCreateContactController,
 		contactController.NewDeleteContactController,
+		contactController.NewGetContactByNameController,
 		wire.Struct(new(ContactDependencies), "*"),
 	)
 

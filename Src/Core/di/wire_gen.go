@@ -8,53 +8,55 @@ package di
 
 import (
 	"chat/Src/Core/sse"
-	application6 "chat/Src/Endpoint/Contacts/Application"
-	controller6 "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
-	sql6 "chat/Src/Endpoint/Contacts/Infrestructure/Sql"
 	application4 "chat/Src/Endpoint/Class/Application"
 	controller4 "chat/Src/Endpoint/Class/Infrestructure/Controller"
 	sql4 "chat/Src/Endpoint/Class/Infrestructure/Sql"
+	application6 "chat/Src/Endpoint/Contacts/Application"
+	controller6 "chat/Src/Endpoint/Contacts/Infrestructure/Controller"
+	sql6 "chat/Src/Endpoint/Contacts/Infrestructure/Sql"
 	application5 "chat/Src/Endpoint/Enrollment/Application"
 	controller5 "chat/Src/Endpoint/Enrollment/Infrestructure/Controller"
 	sql5 "chat/Src/Endpoint/Enrollment/Infrestructure/Sql"
 	application2 "chat/Src/Endpoint/Message/Application"
-	"chat/Src/Endpoint/Message/Domain/Repository"
+	repository "chat/Src/Endpoint/Message/Domain/Repository"
 	controller2 "chat/Src/Endpoint/Message/Infrestructure/Controller"
 	sql2 "chat/Src/Endpoint/Message/Infrestructure/Sql"
 	application3 "chat/Src/Endpoint/Reservations/Application"
 	controller3 "chat/Src/Endpoint/Reservations/Infrestructure/Controller"
 	sql3 "chat/Src/Endpoint/Reservations/Infrestructure/Sql"
-	"chat/Src/Endpoint/User/Application"
-	"chat/Src/Endpoint/User/Infrestructure/Controller"
-	"chat/Src/Endpoint/User/Infrestructure/Sql"
+	application "chat/Src/Endpoint/User/Application"
+	controller "chat/Src/Endpoint/User/Infrestructure/Controller"
+	sql "chat/Src/Endpoint/User/Infrestructure/Sql"
 )
 
 // Injectors from wire.go:
 func InitializeContactDependencies() (*ContactDependencies, error) {
-    contactSQL, err := sql6.NewMySQL()
-    if err != nil {
-        return nil, err
-    }
+	contactSQL, err := sql6.NewMySQL()
+	if err != nil {
+		return nil, err
+	}
 
-    // Use cases
-    getAllContactsUseCase := application6.NewGetAllContactsUseCase(contactSQL)
-    createContactUseCase := application6.NewCreateContactUseCase(contactSQL)
-    deleteContactUseCase := application6.NewDeleteContactUseCase(contactSQL)
+	// Use cases
+	getAllContactsUseCase := application6.NewGetAllContactsUseCase(contactSQL)
+	createContactUseCase := application6.NewCreateContactUseCase(contactSQL)
+	deleteContactUseCase := application6.NewDeleteContactUseCase(contactSQL)
+	getContactByNameUseCase := application6.NewGetContactByNameUseCase(contactSQL)
 
-    // Controllers
-    getAllContactsController := controller6.NewGetAllContactsController(getAllContactsUseCase)
-    createContactController := controller6.NewCreateContactController(createContactUseCase)
-    deleteContactController := controller6.NewDeleteContactController(deleteContactUseCase)
+	// Controllers
+	getAllContactsController := controller6.NewGetAllContactsController(getAllContactsUseCase)
+	createContactController := controller6.NewCreateContactController(createContactUseCase, getAllContactsUseCase)
+	deleteContactController := controller6.NewDeleteContactController(deleteContactUseCase)
+	getContactByNameController := controller6.NewGetContactByNameController(getContactByNameUseCase)
 
-    contactDependencies := &ContactDependencies{
-        GetAllContactsController: getAllContactsController,
-        CreateContactController:  createContactController,
-        DeleteContactController:  deleteContactController,
-    }
+	contactDependencies := &ContactDependencies{
+		GetAllContactsController:   getAllContactsController,
+		CreateContactController:    createContactController,
+		DeleteContactController:    deleteContactController,
+		GetContactByNameController: getContactByNameController,
+	}
 
-    return contactDependencies, nil
+	return contactDependencies, nil
 }
-
 
 func InitializeUserDependencies() (*UserDependencies, error) {
 	mysql, err := sql.NewMySQL()
@@ -72,10 +74,10 @@ func InitializeUserDependencies() (*UserDependencies, error) {
 	getTeacherByIDUseCase := application.NewGetTeacherByIDUseCase(mysql)
 	getTeacherByIDController := controller.NewGetTeacherByIDController(getTeacherByIDUseCase)
 	userDependencies := &UserDependencies{
-		GetAllUserController:    getAllUserController,
-		GetUserByNameController: getUserByNameController,
-		CreateUserController:    createUserController,
-		LoginUserController:     controllerLoginUserUseCase,
+		GetAllUserController:     getAllUserController,
+		GetUserByNameController:  getUserByNameController,
+		CreateUserController:     createUserController,
+		LoginUserController:      controllerLoginUserUseCase,
 		GetTeacherByIDController: getTeacherByIDController,
 	}
 	return userDependencies, nil

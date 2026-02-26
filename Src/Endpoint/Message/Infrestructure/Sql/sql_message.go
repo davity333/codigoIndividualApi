@@ -18,14 +18,13 @@ func NewMySQL() (*Mysql, error) {
 	return &Mysql{config: conn}, nil
 }
 
-func(m *Mysql) GetMessagesByUserId(id int)([]*entities.Message, error){
+func (m *Mysql) GetMessagesByUserId(senderId int, receiveId int) ([]*entities.Message, error) {
 	query := `SELECT idMessage, senderId, receiveId, content, timeMessage
 				FROM messages
-				WHERE senderId = ? OR receiveId = ?
-				ORDER BY timeMessage ASC;
-				;`
+				WHERE (senderId = ? AND receiveId = ?) OR (senderId = ? AND receiveId = ?)
+				ORDER BY timeMessage ASC;`
 
-	rows, err := m.config.DB.Query(query, id, id)
+	rows, err := m.config.DB.Query(query, senderId, receiveId, receiveId, senderId)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +42,13 @@ func(m *Mysql) GetMessagesByUserId(id int)([]*entities.Message, error){
 	return messages, nil
 }
 
-func(m *Mysql) SendMessage(message *entities.Message) error{
+func (m *Mysql) SendMessage(message *entities.Message) error {
 	query := `INSERT INTO messages (senderId, receiveId, content, timeMessage) VALUES (?, ?, ?, ?)`
 	_, err := m.config.DB.Exec(query, message.SenderId, message.ReceiveId, message.Content, message.TimeMessage)
 	return err
 }
 
-func(m *Mysql) DeleteMessage(id int) error{
+func (m *Mysql) DeleteMessage(id int) error {
 	query := `DELETE FROM messages WHERE idMessage = ?`
 	_, err := m.config.DB.Exec(query, id)
 

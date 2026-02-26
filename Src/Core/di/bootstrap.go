@@ -2,11 +2,11 @@ package di
 
 import (
 	classRouter "chat/Src/Endpoint/Class/Infrestructure/Router"
+	contactRouter "chat/Src/Endpoint/Contacts/Infrestructure/Router"
 	enrollmentRouter "chat/Src/Endpoint/Enrollment/Infrestructure/Router"
 	messageRouter "chat/Src/Endpoint/Message/Infrestructure/Router"
 	reservationRouter "chat/Src/Endpoint/Reservations/Infrestructure/Router"
 	userRouter "chat/Src/Endpoint/User/Infrestructure/Router"
-	contactRouter "chat/Src/Endpoint/Contacts/Infrestructure/Router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,6 +47,7 @@ func InitRoutes(g *gin.Engine) error {
 		contactDeps.GetAllContactsController,
 		contactDeps.CreateContactController,
 		contactDeps.DeleteContactController,
+		contactDeps.GetContactByNameController,
 	)
 
 	userRouter.RouterUser(
