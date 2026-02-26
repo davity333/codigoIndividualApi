@@ -15,24 +15,43 @@ func NewClassSQL() (*ClassSQL, error) {
 	return &ClassSQL{config: conn}, nil
 }
 
-func (c *ClassSQL) GetAllClasses() ([]entities.Class, error) {
-	query := `SELECT idClass, teacherId, title, description, classDate, startTime, endTime, capacity, status FROM classes WHERE status = 'Activa'`
-	rows, err := c.config.FetchRows(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func (c *ClassSQL) GetAllClasses() ([]entities.ClassWithTeacher, error) {
+    query := `
+        SELECT 
+            cl.idClass,
+            cl.teacherId,
+            cl.title,
+            cl.description,
+            cl.classDate,
+            cl.startTime,
+            cl.endTime,
+            cl.capacity,
+            cl.status,
+            u.firstname,
+            u.lastname
+        FROM classes cl
+        JOIN users u ON cl.teacherId = u.id
+        WHERE cl.status = 'Activa'
+    `
 
-	var classes []entities.Class
-	for rows.Next() {
-		class, err := scanClass(rows)
-		if err != nil {
-			return nil, err
-		}
-		classes = append(classes, class)
-	}
-	return classes, nil
+    rows, err := c.config.FetchRows(query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var classes []entities.ClassWithTeacher
+    for rows.Next() {
+        class, err := scanClassWithTeacher(rows)
+        if err != nil {
+            return nil, err
+        }
+        classes = append(classes, class)
+    }
+    return classes, nil
 }
+
+
 
 func (c *ClassSQL) GetClassByID(classID int64) (*entities.Class, error) {
 	query := `SELECT idClass, teacherId, title, description, classDate, startTime, endTime, capacity, status FROM classes WHERE idClass = ?`
@@ -162,3 +181,27 @@ func (c *ClassSQL) HasScheduleConflict(teacherID int, startTime, endTime string,
     return count > 0, nil
 }
 
+func scanClassWithTeacher(rows *sql.Rows) (entities.ClassWithTeacher, error) {
+    var class entities.ClassWithTeacher
+    var classDate string
+
+    err := rows.Scan(
+        &class.ID,
+        &class.TeacherID,
+        &class.Title,
+        &class.Description,
+        &classDate,
+        &class.StartTime,
+        &class.EndTime,
+        &class.Capacity,
+        &class.Status,
+        &class.TeacherFirstName,
+        &class.TeacherLastName,
+    )
+    if err != nil {
+        return class, err
+    }
+
+    class.ClassDate = classDate
+    return class, nil
+}

@@ -15,6 +15,7 @@ func NewGetAllClassesUseCase(repo repository.IClass) *GetAllClassesUseCase {
 	}
 }
 
-func (u *GetAllClassesUseCase) Execute() ([]entities.Class, error) {
-	return u.repository.GetAllClasses()
+func (u *GetAllClassesUseCase) Execute() ([]entities.ClassWithTeacher, error) {
+    return u.repository.GetAllClasses()
 }
+
