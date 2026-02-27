@@ -3,6 +3,9 @@ package controller
 import (
 	application "chat/Src/Endpoint/Reservations/Application"
 	entities "chat/Src/Endpoint/Reservations/Domain/Entities"
+	"bytes"
+	"fmt"
+	"io"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,19 +20,32 @@ func NewCreateReservationController(usecase *application.CreateReservationUseCas
 	}
 }
 
-func (c *CreateReservationController) CreateReservation(ctx *gin.Context) {
-	var reservation *entities.Reservation
+func (ctrl *CreateReservationController) CreateReservation(c *gin.Context) {
 
-	if err := ctx.ShouldBindJSON(&reservation); err != nil {
-		ctx.JSON(400, gin.H{"error": "Error 400 - Solicitud incorrecta", "Detail": err.Error()})
-		return
-	}
+    // 1. Leer body crudo
+    bodyBytes, _ := io.ReadAll(c.Request.Body)
+    fmt.Println("📩 BODY RECIBIDO:", string(bodyBytes))
 
-	err := c.usecase.Execute(reservation)
-	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Error 500 - Error interno del servidor", "Detail": err.Error()})
-		return
-	}
+    // 2. Reponer body para BindJSON
+    c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-	ctx.JSON(201, gin.H{"data": formatReservation(reservation)})
+    // 3. Parsear JSON
+    var req entities.Reservation
+    if err := c.BindJSON(&req); err != nil {
+        fmt.Println("❌ ERROR PARSEANDO JSON:", err)
+        c.JSON(400, gin.H{"error": "JSON inválido", "detail": err.Error()})
+        return
+    }
+
+    // 4. Log del objeto parseado
+    fmt.Printf("📦 JSON PARSEADO: %+v\n", req)
+
+    // 5. Lógica normal
+    if err := ctrl.usecase.Execute(&req); err != nil {
+        c.JSON(500, gin.H{"error": "Error interno del servidor", "detail": err.Error()})
+        return
+    }
+
+    c.JSON(201, gin.H{"message": "Reservación creada", "data": req})
 }
+

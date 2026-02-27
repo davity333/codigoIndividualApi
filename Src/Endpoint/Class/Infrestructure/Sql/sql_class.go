@@ -205,3 +205,57 @@ func scanClassWithTeacher(rows *sql.Rows) (entities.ClassWithTeacher, error) {
     class.ClassDate = classDate
     return class, nil
 }
+
+func (m *ClassSQL) GetClassesByDate(date string) ([]entities.ClassWithTeacher, error) {
+
+    query := `
+        SELECT 
+            cl.idClass,
+            cl.teacherId,
+            cl.title,
+            cl.description,
+            cl.classDate,
+            cl.startTime,
+            cl.endTime,
+            cl.capacity,
+            cl.status,
+            u.firstname,
+            u.lastname
+        FROM classes cl
+        JOIN users u ON cl.teacherId = u.id
+        WHERE DATE(cl.classDate) = ?
+        AND CONCAT(cl.classDate, ' ', cl.startTime) > NOW()
+        ORDER BY cl.startTime ASC
+    `
+
+    rows, err := m.config.DB.Query(query, date)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var classes []entities.ClassWithTeacher
+
+    for rows.Next() {
+        var c entities.ClassWithTeacher
+        err := rows.Scan(
+            &c.ID,
+            &c.TeacherID,
+            &c.Title,
+            &c.Description,
+            &c.ClassDate,
+            &c.StartTime,
+            &c.EndTime,
+            &c.Capacity,
+            &c.Status,
+            &c.TeacherFirstName,
+            &c.TeacherLastName,
+        )
+        if err != nil {
+            return nil, err
+        }
+        classes = append(classes, c)
+    }
+
+    return classes, nil
+}

@@ -74,6 +74,7 @@ func InitRoutes(g *gin.Engine) error {
 		reservationDeps.CreateReservationController,
 		reservationDeps.UpdateReservationController,
 		reservationDeps.DeleteReservationController,
+		reservationDeps.GetReservationsByStudentIDController,
 	)
 
 	classRouterInstance := classRouter.NewClassRouter(
@@ -83,6 +84,7 @@ func InitRoutes(g *gin.Engine) error {
 		classDeps.CreateClassController,
 		classDeps.UpdateClassController,
 		classDeps.DeleteClassController,
+		classDeps.GetClassesByDateController,
 	)
 	classRouterInstance.RegisterRoutes(g)
 

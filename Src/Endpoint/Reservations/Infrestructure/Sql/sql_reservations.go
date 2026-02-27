@@ -126,29 +126,66 @@ func (m *Mysql) DeleteReservation(id int) error {
 	return nil
 }
 
-func scanReservation(scanner interface {
-	Scan(dest ...interface{}) error
-}) (*entities.Reservation, error) {
-	var reservation entities.Reservation
-	var attendance sql.NullBool
+func scanReservation(rows *sql.Rows) (*entities.Reservation, error) {
+    var r entities.Reservation
+    var attendance sql.NullBool
 
-	err := scanner.Scan(
-		&reservation.ID,
-		&reservation.StudentID,
-		&reservation.ClassID,
-		&reservation.ReservationDate,
-		&attendance,
-	)
-	if err != nil {
-		return nil, err
-	}
+    err := rows.Scan(
+        &r.ID,
+        &r.StudentID,
+        &r.ClassID,
+        &r.ReservationDate,
+        &attendance,
+    )
+    if err != nil {
+        return nil, err
+    }
 
-	if attendance.Valid {
-		value := attendance.Bool
-		reservation.Attendance = &value
-	} else {
-		reservation.Attendance = nil
-	}
+    if attendance.Valid {
+        r.Attendance = &attendance.Bool
+    } else {
+        r.Attendance = nil
+    }
 
-	return &reservation, nil
+    return &r, nil
+}
+
+func (m *Mysql) GetReservationsByStudentID(studentID int) ([]*entities.Reservation, error) {
+
+    query := `
+        SELECT 
+            r.idReservation,
+            r.studentId,
+            r.classId,
+            r.reservationDate,
+            r.attendance
+        FROM reservations r
+        WHERE r.studentId = ?
+        ORDER BY r.reservationDate DESC
+    `
+
+    rows, err := m.config.DB.Query(query, studentID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var reservations []*entities.Reservation
+
+    for rows.Next() {
+        var r entities.Reservation
+        err := rows.Scan(
+            &r.ID,
+            &r.StudentID,
+            &r.ClassID,
+            &r.ReservationDate,
+            &r.Attendance,
+        )
+        if err != nil {
+            return nil, err
+        }
+        reservations = append(reservations, &r)
+    }
+
+    return reservations, nil
 }

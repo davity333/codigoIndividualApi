@@ -114,6 +114,7 @@ func InitializeReservationDependencies() (*ReservationDependencies, error) {
 		reservationController.NewCreateReservationController,
 		reservationController.NewUpdateReservationController,
 		reservationController.NewDeleteReservationController,
+		reservationController.NewGetReservationsByStudentIDController,
 		wire.Struct(new(ReservationDependencies), "*"),
 	)
 
@@ -136,7 +137,9 @@ func InitializeClassDependencies() (*ClassDependencies, error) {
 		classController.NewCreateClassController,
 		classController.NewUpdateClassController,
 		classController.NewDeleteClassController,
+		classController.NewGetClassesByDateController,
 		wire.Struct(new(ClassDependencies), "*"),
+
 	)
 
 	return nil, nil

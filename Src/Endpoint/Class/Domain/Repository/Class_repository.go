@@ -12,5 +12,6 @@ type IClass interface {
     UpdateClass(class *entities.Class) error
     DeleteClass(classID int64) error
     HasScheduleConflict(teacherID int, startTime, endTime string, classDate string) (bool, error)
+	GetClassesByDate(date string) ([]entities.ClassWithTeacher, error)
 }
 

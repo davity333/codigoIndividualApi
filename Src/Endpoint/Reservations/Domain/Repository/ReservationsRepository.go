@@ -8,4 +8,5 @@ type IReservation interface {
 	CreateReservation(reservation *entities.Reservation) error
 	UpdateReservation(id int, reservation *entities.Reservation) error
 	DeleteReservation(id int) error
+	GetReservationsByStudentID(studentID int) ([]*entities.Reservation, error)
 }

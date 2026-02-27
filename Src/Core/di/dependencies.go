@@ -37,6 +37,7 @@ type ReservationDependencies struct {
 	CreateReservationController  *reservationController.CreateReservationController
 	UpdateReservationController  *reservationController.UpdateReservationController
 	DeleteReservationController  *reservationController.DeleteReservationController
+	GetReservationsByStudentIDController *reservationController.GetReservationsByStudentIDController
 }
 
 type ClassDependencies struct {
@@ -46,6 +47,7 @@ type ClassDependencies struct {
 	CreateClassController           *classController.CreateClassController
 	UpdateClassController           *classController.UpdateClassController
 	DeleteClassController           *classController.DeleteClassController
+	GetClassesByDateController      *classController.GetClassesByDateController
 }
 
 type EnrollmentDependencies struct {

@@ -13,6 +13,7 @@ type ClassRouter struct {
 	createClassController           *controller.CreateClassController
 	updateClassController           *controller.UpdateClassController
 	deleteClassController           *controller.DeleteClassController
+	getClassesByDateController      *controller.GetClassesByDateController
 }
 
 func NewClassRouter(
@@ -22,6 +23,7 @@ func NewClassRouter(
 	createClassController *controller.CreateClassController,
 	updateClassController *controller.UpdateClassController,
 	deleteClassController *controller.DeleteClassController,
+	getClassesByDateController *controller.GetClassesByDateController,
 ) *ClassRouter {
 	return &ClassRouter{
 		getAllClassesController:         getAllClassesController,
@@ -30,6 +32,7 @@ func NewClassRouter(
 		createClassController:           createClassController,
 		updateClassController:           updateClassController,
 		deleteClassController:           deleteClassController,
+		getClassesByDateController:      getClassesByDateController,
 	}
 }
 
@@ -42,5 +45,6 @@ func (r *ClassRouter) RegisterRoutes(g *gin.Engine) {
 		classGroup.POST("/create", r.createClassController.CreateClass)
 		classGroup.PUT("/update", r.updateClassController.UpdateClass)
 		classGroup.DELETE("/:classId", r.deleteClassController.DeleteClass)
+		classGroup.GET("/date/:date", r.getClassesByDateController.GetClassesByDate)
 	}
 }

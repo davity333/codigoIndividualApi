@@ -120,12 +120,16 @@ func InitializeReservationDependencies() (*ReservationDependencies, error) {
 	updateReservationController := controller3.NewUpdateReservationController(updateReservationUseCase)
 	deleteReservationUseCase := application3.NewDeleteReservationUseCase(mysql)
 	deleteReservationController := controller3.NewDeleteReservationController(deleteReservationUseCase)
+	getReservationsByStudentIDUseCase := application3.NewGetReservationsByStudentIDUseCase(mysql)
+	getReservationsByStudentIDController := controller3.NewGetReservationsByStudentIDController(getReservationsByStudentIDUseCase)
+	
 	reservationDependencies := &ReservationDependencies{
 		GetAllReservationsController: getAllReservationsController,
 		GetReservationByIDController: getReservationByIDController,
 		CreateReservationController:  createReservationController,
 		UpdateReservationController:  updateReservationController,
 		DeleteReservationController:  deleteReservationController,
+		GetReservationsByStudentIDController: getReservationsByStudentIDController,
 	}
 	return reservationDependencies, nil
 }
@@ -147,6 +151,9 @@ func InitializeClassDependencies() (*ClassDependencies, error) {
 	updateClassController := controller4.NewUpdateClassController(updateClassUseCase)
 	deleteClassUseCase := application4.NewDeleteClassUseCase(classSQL)
 	deleteClassController := controller4.NewDeleteClassController(deleteClassUseCase)
+	getClassesByDateUseCase := application4.NewGetClassesByDateUseCase(classSQL)
+	getClassesByDateController := controller4.NewGetClassesByDateController(getClassesByDateUseCase)
+	
 	classDependencies := &ClassDependencies{
 		GetAllClassesController:         getAllClassesController,
 		GetClassByIDController:          getClassByIDController,
@@ -154,6 +161,7 @@ func InitializeClassDependencies() (*ClassDependencies, error) {
 		CreateClassController:           createClassController,
 		UpdateClassController:           updateClassController,
 		DeleteClassController:           deleteClassController,
+		GetClassesByDateController:      getClassesByDateController,
 	}
 	return classDependencies, nil
 }
